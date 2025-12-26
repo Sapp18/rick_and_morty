@@ -24,12 +24,34 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     final currentState = state;
 
     List<Character> oldCharacters = [];
-    int nextPage = event.page;
+    int nextPage;
 
-    if (currentState is CharactersLoaded) {
-      if (currentState.hasReachedMax) return;
-      oldCharacters = currentState.characters;
-      nextPage++;
+    // Si page es null, significa "siguiente página" (scroll infinito)
+    // Si page es 1, significa "resetear desde el inicio" (refresh)
+    // Si page tiene otro valor, usar ese valor específico
+    if (event.page == null) {
+      // Scroll infinito: continuar desde donde estábamos
+      if (currentState is CharactersLoaded) {
+        if (currentState.hasReachedMax) return;
+        oldCharacters = currentState.characters;
+        // Calcular la siguiente página basándonos en cuántos personajes tenemos
+        // La API de Rick and Morty devuelve 20 personajes por página
+        nextPage = (oldCharacters.length ~/ 20) + 1;
+      } else {
+        // Primera carga si no hay estado
+        oldCharacters = [];
+        nextPage = 1;
+      }
+    } else if (event.page == 1) {
+      // Refresh: resetear la lista
+      oldCharacters = [];
+      nextPage = 1;
+    } else {
+      // Página específica
+      oldCharacters = currentState is CharactersLoaded
+          ? currentState.characters
+          : [];
+      nextPage = event.page!;
     }
 
     emit(CharactersLoading());

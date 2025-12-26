@@ -8,8 +8,11 @@ abstract class CharactersEvent extends Equatable {
 }
 
 class LoadCharactersEvent extends CharactersEvent {
-  final int page;
+  final int? page;
   final String? name;
 
-  const LoadCharactersEvent({this.page = 1, this.name});
+  const LoadCharactersEvent({this.page, this.name});
+
+  @override
+  List<Object?> get props => [page, name];
 }
