@@ -54,9 +54,7 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     } on Failure catch (failure) {
       emit(CharactersError(_getErrorMessage(failure)));
     } catch (e) {
-      emit(CharactersError(
-        'An unexpected error occurred: ${e.toString()}',
-      ));
+      emit(CharactersError('Se produjo un error inesperado: ${e.toString()}'));
     }
   }
 
@@ -64,30 +62,30 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
   String _getErrorMessage(Failure failure) {
     if (failure is ServerFailure) {
       if (failure.statusCode == 404) {
-        return 'No characters found. Try adjusting your search.';
+        return 'No se encontraron personajes, intente ajustar su búsqueda.';
       }
       if (failure.statusCode != null && failure.statusCode! >= 500) {
-        return 'Server error. Please try again later.';
+        return 'Error del servidor, por favor intente nuevamente más tarde.';
       }
       return failure.message;
     }
 
     if (failure is NetworkFailure) {
       if (failure.code == 'NO_CONNECTION') {
-        return 'No internet connection. Please check your network.';
+        return 'No hay conexión a internet, por favor revise sus configuraciones de red.';
       }
       if (failure.code == 'TIMEOUT') {
-        return 'Request timed out. Please try again.';
+        return 'Tiempo de espera agotado, por favor intente nuevamente.';
       }
       return failure.message;
     }
 
     if (failure is CacheFailure) {
-      return 'Error accessing local data. Please try again.';
+      return 'Error al acceder a los datos locales, por favor intente nuevamente.';
     }
 
     if (failure is ValidationFailure) {
-      return 'Invalid data: ${failure.message}';
+      return 'Datos inválidos: ${failure.message}';
     }
 
     return failure.message;
