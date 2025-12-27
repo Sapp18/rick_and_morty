@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
+import 'package:rick_and_morty/features/characteres/presentation/bloc/characters_bloc.dart';
 import 'package:rick_and_morty/features/detail_characters/presentation/pages/detail_characters_page.dart';
 
 class CharacterCard extends StatelessWidget {
@@ -39,14 +41,19 @@ class CharacterCard extends StatelessWidget {
       child: InkWell(
         onTap:
             onTap ??
-            () {
-              Navigator.push(
+            () async {
+              await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
                       DetailCharactersPage(character: character),
                 ),
               );
+              // Refrescar favoritos cuando se regrese de la pantalla de detalle
+              if (context.mounted) {
+                final bloc = context.read<CharactersBloc>();
+                bloc.add(const RefreshFavoritesEvent());
+              }
             },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

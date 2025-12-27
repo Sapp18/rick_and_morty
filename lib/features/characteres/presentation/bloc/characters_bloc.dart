@@ -4,17 +4,27 @@ import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character_filters.dart';
 import 'package:rick_and_morty/features/characteres/domain/usecases/get_characters_usecase.dart';
+import 'package:rick_and_morty/features/characteres/domain/usecases/toggle_favorite_usecase.dart';
+import 'package:rick_and_morty/features/characteres/domain/usecases/get_favorites_ids_usecase.dart';
 
 part 'characters_event.dart';
 part 'characters_state.dart';
 
 class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
   final GetCharactersUseCase getCharacters;
+  final ToggleFavoriteUseCase? toggleFavorite;
+  final GetFavoritesIdsUseCase? getFavoritesIds;
   CharacterFilters? _currentFilters;
 
-  CharactersBloc(this.getCharacters) : super(CharactersInitial()) {
+  CharactersBloc(
+    this.getCharacters, [
+    this.toggleFavorite,
+    this.getFavoritesIds,
+  ]) : super(CharactersInitial()) {
     on<LoadCharactersEvent>(_onLoadCharacters);
     on<SearchCharactersEvent>(_onSearchCharacters);
+    on<ToggleFavoriteEvent>(_onToggleFavorite);
+    on<RefreshFavoritesEvent>(_onRefreshFavorites);
   }
 
   Future<void> _onLoadCharacters(
@@ -176,5 +186,76 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
 
     // Cargar desde la primera página con los nuevos filtros
     add(LoadCharactersEvent(page: 1, filters: _currentFilters));
+  }
+
+  Future<void> _onToggleFavorite(
+    ToggleFavoriteEvent event,
+    Emitter<CharactersState> emit,
+  ) async {
+    if (toggleFavorite == null) return;
+
+    final currentState = state;
+    if (currentState is! CharactersLoaded) return;
+
+    try {
+      await toggleFavorite!(characterId: event.characterId);
+
+      // Actualizar el estado con el favorito cambiado
+      final updatedCharacters = currentState.characters.map((character) {
+        if (character.id == event.characterId) {
+          return Character(
+            id: character.id,
+            name: character.name,
+            image: character.image,
+            species: character.species,
+            status: character.status,
+            origin: character.origin,
+            isFavorite: !character.isFavorite,
+          );
+        }
+        return character;
+      }).toList();
+
+      emit(
+        currentState.copyWith(characters: updatedCharacters),
+      );
+    } catch (e) {
+      // Si hay error, no hacer nada o mostrar un mensaje
+      print('Error al actualizar favorito: $e');
+    }
+  }
+
+  Future<void> _onRefreshFavorites(
+    RefreshFavoritesEvent event,
+    Emitter<CharactersState> emit,
+  ) async {
+    if (getFavoritesIds == null) return;
+
+    final currentState = state;
+    if (currentState is! CharactersLoaded) return;
+
+    try {
+      final favoritesIds = (await getFavoritesIds!()).toSet();
+
+      // Actualizar el estado con los favoritos actualizados
+      final updatedCharacters = currentState.characters.map((character) {
+        return Character(
+          id: character.id,
+          name: character.name,
+          image: character.image,
+          species: character.species,
+          status: character.status,
+          origin: character.origin,
+          isFavorite: favoritesIds.contains(character.id),
+        );
+      }).toList();
+
+      emit(
+        currentState.copyWith(characters: updatedCharacters),
+      );
+    } catch (e) {
+      // Si hay error, no hacer nada
+      print('Error al refrescar favoritos: $e');
+    }
   }
 }

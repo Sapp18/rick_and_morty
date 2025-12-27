@@ -25,3 +25,16 @@ class SearchCharactersEvent extends CharactersEvent {
   @override
   List<Object?> get props => [query];
 }
+
+class ToggleFavoriteEvent extends CharactersEvent {
+  final int characterId;
+
+  const ToggleFavoriteEvent(this.characterId);
+
+  @override
+  List<Object?> get props => [characterId];
+}
+
+class RefreshFavoritesEvent extends CharactersEvent {
+  const RefreshFavoritesEvent();
+}

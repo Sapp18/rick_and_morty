@@ -14,10 +14,38 @@ class DetailCharactersPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          DetailCharactersBloc(getDetailCharactersUseCase)
-            ..add(LoadDetailCharacterEvent(character.id)),
+          DetailCharactersBloc(
+            getDetailCharactersUseCase,
+            toggleFavoriteUseCase,
+            getFavoritesIdsUseCase,
+          )..add(LoadDetailCharacterEvent(character.id)),
       child: Scaffold(
-        appBar: AppBar(title: Text(character.name), centerTitle: true),
+        appBar: AppBar(
+          title: Text(character.name),
+          centerTitle: true,
+          actions: [
+            BlocBuilder<DetailCharactersBloc, DetailCharactersState>(
+              builder: (context, state) {
+                final isFavorite = state is DetailCharactersLoaded
+                    ? state.isFavorite
+                    : character.isFavorite;
+                return IconButton(
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : null,
+                  ),
+                  onPressed: () {
+                    context.read<DetailCharactersBloc>().add(
+                          ToggleFavoriteDetailEvent(character.id),
+                        );
+                    // Notificar al BLoC de la lista para actualizar
+                    // Esto se puede hacer con un callback o un evento global
+                  },
+                );
+              },
+            ),
+          ],
+        ),
         body: BlocBuilder<DetailCharactersBloc, DetailCharactersState>(
           builder: (context, state) {
             if (state is DetailCharactersInitial) {

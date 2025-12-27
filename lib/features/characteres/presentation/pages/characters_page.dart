@@ -16,8 +16,11 @@ class _CharactersPageState extends State<CharactersPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          CharactersBloc(getCharactersUseCase)
-            ..add(const LoadCharactersEvent(page: 1)),
+          CharactersBloc(
+            getCharactersUseCase,
+            toggleFavoriteUseCase,
+            getFavoritesIdsUseCase,
+          )..add(const LoadCharactersEvent(page: 1)),
       child: const _CharactersView(),
     );
   }

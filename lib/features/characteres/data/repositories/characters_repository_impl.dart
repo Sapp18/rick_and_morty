@@ -6,11 +6,13 @@ import 'package:rick_and_morty/features/characteres/domain/entities/character_fi
 import 'package:rick_and_morty/features/characteres/domain/entities/characters_result.dart';
 import 'package:rick_and_morty/features/characteres/domain/repositories/characters_repository.dart';
 import 'package:rick_and_morty/features/characteres/data/datasources/characters_remote_datasource.dart';
+import 'package:rick_and_morty/features/characteres/domain/repositories/favorites_repository.dart';
 
 class CharactersRepositoryImpl implements CharactersRepository {
   final CharactersRemoteDataSource remote;
+  final FavoritesRepository? favoritesRepository;
 
-  CharactersRepositoryImpl(this.remote);
+  CharactersRepositoryImpl(this.remote, [this.favoritesRepository]);
 
   @override
   Future<CharactersResult> getCharacters({
@@ -78,11 +80,28 @@ class CharactersRepositoryImpl implements CharactersRepository {
             }
           })
           .whereType<CharacterModel>() // Filtrar nulls
-          .map((model) => model.toEntity())
+          .toList();
+
+      // Obtener favoritos si hay repositorio de favoritos
+      Set<int> favoritesIds = {};
+      if (favoritesRepository != null) {
+        try {
+          favoritesIds = (await favoritesRepository!.getFavoritesIds()).toSet();
+        } catch (e) {
+          // Si hay error obteniendo favoritos, continuar sin ellos
+          print('Error obteniendo favoritos: $e');
+        }
+      }
+
+      // Mapear a entidades con información de favoritos
+      final charactersWithFavorites = characters
+          .map((model) => model.toEntity(
+                isFavorite: favoritesIds.contains(model.id),
+              ))
           .toList();
 
       // Validar que al menos algunos personajes se parsearon correctamente
-      if (characters.isEmpty && response.results!.isNotEmpty) {
+      if (charactersWithFavorites.isEmpty && response.results!.isNotEmpty) {
         throw const ValidationException(
           'Failed to parse any characters from the response',
           code: 'PARSE_FAILURE',
@@ -90,7 +109,7 @@ class CharactersRepositoryImpl implements CharactersRepository {
       }
 
       return CharactersResult(
-        characters: characters,
+        characters: charactersWithFavorites,
         hasReachedMax: response.info?.next == null,
       );
     } on ServerException catch (e) {

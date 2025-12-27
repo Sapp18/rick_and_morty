@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/detail_characters/domain/entities/detail_character.dart';
 import 'package:rick_and_morty/features/detail_characters/domain/usecases/get_detail_characters_usecase.dart';
+import 'package:rick_and_morty/features/characteres/domain/usecases/toggle_favorite_usecase.dart';
+import 'package:rick_and_morty/features/characteres/domain/usecases/get_favorites_ids_usecase.dart';
 
 part 'detail_characters_event.dart';
 part 'detail_characters_state.dart';
@@ -10,10 +12,17 @@ part 'detail_characters_state.dart';
 class DetailCharactersBloc
     extends Bloc<DetailCharactersEvent, DetailCharactersState> {
   final GetDetailCharactersUseCase getDetailCharacter;
+  final ToggleFavoriteUseCase? toggleFavorite;
+  final GetFavoritesIdsUseCase? getFavoritesIds;
+  bool _isFavorite = false;
 
-  DetailCharactersBloc(this.getDetailCharacter)
-    : super(DetailCharactersInitial()) {
+  DetailCharactersBloc(
+    this.getDetailCharacter, [
+    this.toggleFavorite,
+    this.getFavoritesIds,
+  ]) : super(DetailCharactersInitial()) {
     on<LoadDetailCharacterEvent>(_onLoadDetailCharacter);
+    on<ToggleFavoriteDetailEvent>(_onToggleFavorite);
   }
 
   Future<void> _onLoadDetailCharacter(
@@ -28,7 +37,17 @@ class DetailCharactersBloc
     try {
       final result = await getDetailCharacter(id: event.id);
 
-      emit(DetailCharactersLoaded(result));
+      // Verificar si es favorito
+      if (getFavoritesIds != null) {
+        try {
+          final favoritesIds = await getFavoritesIds!();
+          _isFavorite = favoritesIds.contains(event.id);
+        } catch (e) {
+          _isFavorite = false;
+        }
+      }
+
+      emit(DetailCharactersLoaded(result, isFavorite: _isFavorite));
     } on ServerFailure catch (failure) {
       emit(DetailCharactersError(_getErrorMessage(failure)));
     } on NetworkFailure catch (failure) {
@@ -79,5 +98,25 @@ class DetailCharactersBloc
     }
 
     return failure.message;
+  }
+
+  Future<void> _onToggleFavorite(
+    ToggleFavoriteDetailEvent event,
+    Emitter<DetailCharactersState> emit,
+  ) async {
+    if (toggleFavorite == null) return;
+
+    final currentState = state;
+    if (currentState is! DetailCharactersLoaded) return;
+
+    try {
+      await toggleFavorite!(characterId: event.characterId);
+      _isFavorite = !_isFavorite;
+
+      emit(currentState.copyWith(isFavorite: _isFavorite));
+    } catch (e) {
+      // Si hay error, no hacer nada o mostrar un mensaje
+      print('Error al actualizar favorito: $e');
+    }
   }
 }

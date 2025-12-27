@@ -13,11 +13,22 @@ class DetailCharactersLoading extends DetailCharactersState {}
 
 class DetailCharactersLoaded extends DetailCharactersState {
   final DetailCharacter character;
+  final bool isFavorite;
 
-  const DetailCharactersLoaded(this.character);
+  const DetailCharactersLoaded(this.character, {this.isFavorite = false});
+
+  DetailCharactersLoaded copyWith({
+    DetailCharacter? character,
+    bool? isFavorite,
+  }) {
+    return DetailCharactersLoaded(
+      character ?? this.character,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
+  }
 
   @override
-  List<Object?> get props => [character];
+  List<Object?> get props => [character, isFavorite];
 }
 
 class DetailCharactersError extends DetailCharactersState {

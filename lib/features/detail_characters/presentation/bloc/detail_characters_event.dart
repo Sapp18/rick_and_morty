@@ -15,3 +15,12 @@ class LoadDetailCharacterEvent extends DetailCharactersEvent {
   @override
   List<Object?> get props => [id];
 }
+
+class ToggleFavoriteDetailEvent extends DetailCharactersEvent {
+  final int characterId;
+
+  const ToggleFavoriteDetailEvent(this.characterId);
+
+  @override
+  List<Object?> get props => [characterId];
+}
