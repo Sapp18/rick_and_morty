@@ -127,7 +127,9 @@ class _CharactersViewState extends State<_CharactersView> {
                   onChanged: _onSearchChanged,
                   textInputAction: TextInputAction.search,
                   onSubmitted: (query) {
-                    context.read<CharactersBloc>().add(SearchCharactersEvent(query));
+                    context.read<CharactersBloc>().add(
+                      SearchCharactersEvent(query),
+                    );
                   },
                 );
               },

@@ -16,11 +16,11 @@ class CharacterFilters {
 
   /// Crea un CharacterFilters vacío (sin filtros)
   const CharacterFilters.empty()
-      : name = null,
-        status = null,
-        species = null,
-        type = null,
-        gender = null;
+    : name = null,
+      status = null,
+      species = null,
+      type = null,
+      gender = null;
 
   /// Verifica si hay algún filtro activo
   bool get hasFilters {
@@ -69,4 +69,3 @@ class CharacterFilters {
         gender.hashCode;
   }
 }
-

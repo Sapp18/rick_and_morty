@@ -44,9 +44,7 @@ class CharactersRemoteDataSourceImpl implements CharactersRemoteDataSource {
       }
 
       // Construir query parameters
-      final queryParameters = <String, dynamic>{
-        'page': page,
-      };
+      final queryParameters = <String, dynamic>{'page': page};
 
       if (name != null && name.trim().isNotEmpty) {
         queryParameters['name'] = name.trim();

@@ -9,9 +9,9 @@ class GetCharactersUseCase {
   GetCharactersUseCase(this.repository);
 
   /// Ejecuta el caso de uso para obtener personajes
-  /// 
+  ///
   /// Lanza [Failure] si ocurre un error durante la operación
-  /// 
+  ///
   /// Parámetros:
   /// - [page]: Número de página (debe ser >= 1)
   /// - [filters]: Filtros opcionales para buscar personajes
@@ -34,9 +34,6 @@ class GetCharactersUseCase {
       );
     }
 
-    return repository.getCharacters(
-      page: page,
-      filters: filters,
-    );
+    return repository.getCharacters(page: page, filters: filters);
   }
 }
