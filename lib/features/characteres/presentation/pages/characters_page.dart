@@ -214,13 +214,7 @@ class _CharactersViewState extends State<_CharactersView> {
                   }
 
                   final character = state.characters[index];
-                  return CharacterCard(
-                    character: character,
-                    onTap: () {
-                      // TODO: Navegar a detalle del personaje
-                      // Navigator.push(context, ...);
-                    },
-                  );
+                  return CharacterCard(character: character);
                 },
               ),
             );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
+import 'package:rick_and_morty/features/detail_characters/presentation/pages/detail_characters_page.dart';
 
 class CharacterCard extends StatelessWidget {
   final Character character;
@@ -36,7 +37,18 @@ class CharacterCard extends StatelessWidget {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onTap,
+        onTap:
+            onTap ??
+            () {
+              print('object');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DetailCharactersPage(character: character),
+                ),
+              );
+            },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
