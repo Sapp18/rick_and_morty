@@ -15,12 +15,11 @@ class _CharactersPageState extends State<CharactersPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          CharactersBloc(
-            getCharactersUseCase,
-            toggleFavoriteUseCase,
-            getFavoritesIdsUseCase,
-          )..add(const LoadCharactersEvent(page: 1)),
+      create: (context) => CharactersBloc(
+        getCharactersUseCase,
+        toggleFavoriteUseCase,
+        getFavoritesIdsUseCase,
+      )..add(const LoadCharactersEvent(page: 1)),
       child: const _CharactersView(),
     );
   }
@@ -97,11 +96,10 @@ class _CharactersViewState extends State<_CharactersView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Personajes'),
-        centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: ValueListenableBuilder<TextEditingValue>(
               valueListenable: _searchController,
               builder: (context, value, child) {
@@ -110,10 +108,10 @@ class _CharactersViewState extends State<_CharactersView> {
                   focusNode: _searchFocusNode,
                   decoration: InputDecoration(
                     hintText: 'Buscar personaje...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
                     suffixIcon: value.text.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: Icon(Icons.clear, color: Colors.grey[400]),
                             onPressed: _clearSearch,
                           )
                         : null,
@@ -203,20 +201,47 @@ class _CharactersViewState extends State<_CharactersView> {
               onRefresh: _onRefresh,
               child: ListView.builder(
                 controller: _scrollController,
-                padding: const EdgeInsets.symmetric(vertical: 8),
+                padding: EdgeInsets.zero,
                 itemCount: state.hasReachedMax
-                    ? state.characters.length
-                    : state.characters.length + (state.isLoadingMore ? 1 : 0),
+                    ? state.characters.length +
+                          1 // +1 para el título de sección
+                    : state.characters.length +
+                          (state.isLoadingMore
+                              ? 2
+                              : 1), // +1 para título, +1 para loading
                 itemBuilder: (context, index) {
+                  // Título de sección al inicio
+                  if (index == 0) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                      child: Text(
+                        'TODOS LOS PERSONAJES',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[400],
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    );
+                  }
+
+                  // Ajustar índice para los personajes
+                  final characterIndex = index - 1;
+
                   // Mostrar indicador de carga al final solo si isLoadingMore es true
-                  if (index >= state.characters.length && state.isLoadingMore) {
+                  if (characterIndex >= state.characters.length &&
+                      state.isLoadingMore) {
                     return const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: Center(child: CircularProgressIndicator()),
                     );
                   }
 
-                  final character = state.characters[index];
+                  final character = state.characters[characterIndex];
                   return CharacterCard(character: character);
                 },
               ),

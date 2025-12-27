@@ -5,9 +5,9 @@ class AppTheme {
   static const Color primaryColor = Colors.purple;
 
   // Colores personalizados del tema oscuro
-  static const Color scaffoldBackground = Color(0xFF121212);
-  static const Color cardBackground = Color(0xFF1E1E1E);
-  static const Color appBarBackground = Color(0xFF1E1E1E);
+  static const Color scaffoldBackground = Color(0xFF11181F);
+  static const Color cardBackground = Color(0xFF1C252F);
+  static const Color appBarBackground = Color(0xFF1C252F);
 
   // Tema oscuro
   static ThemeData get darkTheme {
@@ -22,22 +22,28 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: appBarBackground,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
+        titleTextStyle: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: cardBackground,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[800]!),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.purple[400]!),
+          borderSide: BorderSide.none,
+        ),
+        hintStyle: TextStyle(color: Colors.grey[400]),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
         ),
       ),
     );

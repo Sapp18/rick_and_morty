@@ -10,161 +10,148 @@ class CharacterCard extends StatelessWidget {
 
   const CharacterCard({super.key, required this.character, this.onTap});
 
-  Color _getStatusColor() {
-    switch (character.status.toLowerCase()) {
-      case 'alive':
+  Color _getSpeciesColor() {
+    // Colores basados en especie para el punto indicador
+    switch (character.species.toLowerCase()) {
+      case 'human':
         return Colors.green;
-      case 'dead':
-        return Colors.red;
-      default:
+      case 'alien':
         return Colors.grey;
+      default:
+        return Colors.orange;
     }
   }
 
-  String _getStatusLabel() {
-    switch (character.status.toLowerCase()) {
-      case 'alive':
-        return 'Vivo';
-      case 'dead':
-        return 'Muerto';
-      default:
-        return 'Desconocido';
-    }
+  String _getSpeciesLabel() {
+    return character.species;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap:
-            onTap ??
-            () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      DetailCharactersPage(character: character),
-                ),
-              );
-              // Refrescar favoritos cuando se regrese de la pantalla de detalle
-              if (context.mounted) {
-                final bloc = context.read<CharactersBloc>();
-                bloc.add(const RefreshFavoritesEvent());
-              }
-            },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Imagen del personaje
-              Hero(
-                tag: 'character_image_${character.id}',
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    character.image,
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.person, size: 40),
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Container(
-                        width: 80,
-                        height: 80,
-                        color: Colors.grey[200],
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    },
+    return InkWell(
+      onTap:
+          onTap ??
+          () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    DetailCharactersPage(character: character),
+              ),
+            );
+            // Refrescar favoritos cuando se regrese de la pantalla de detalle
+            if (context.mounted) {
+              final bloc = context.read<CharactersBloc>();
+              bloc.add(const RefreshFavoritesEvent());
+            }
+          },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            // Avatar circular con punto de estado superpuesto
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Hero(
+                  tag: 'character_image_${character.id}',
+                  child: ClipOval(
+                    child: Image.network(
+                      character.image,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 56,
+                          height: 56,
+                          color: Colors.grey[700],
+                          child: const Icon(
+                            Icons.person,
+                            size: 28,
+                            color: Colors.white,
+                          ),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          width: 56,
+                          height: 56,
+                          color: Colors.grey[800],
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              // Información del personaje
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Nombre
-                    Text(
-                      character.name,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                // Punto de estado/especie en la esquina inferior derecha
+                Positioned(
+                  bottom: -2,
+                  right: -2,
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      color: _getSpeciesColor(),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                        width: 2,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 8),
-                    // Status con indicador de color
-                    Row(
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            color: _getStatusColor(),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _getStatusLabel(),
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Especie
-                    Text(
-                      character.species,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 4),
-                    // Origen
-                    Row(
-                      children: [
-                        Icon(Icons.public, size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            character.origin,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            // Información del personaje
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Nombre
+                  Text(
+                    character.name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  // Especie con punto de color
+                  Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: _getSpeciesColor(),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _getSpeciesLabel(),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              // Icono de favorito (si está disponible)
-              if (character.isFavorite)
-                const Icon(Icons.favorite, color: Colors.red, size: 20),
-            ],
-          ),
+            ),
+            // Icono de flecha
+            Icon(Icons.chevron_right, color: Colors.grey[600], size: 24),
+          ],
         ),
       ),
     );
