@@ -22,6 +22,13 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     if (state is CharactersLoading) return;
 
     final currentState = state;
+    CharactersLoaded? loadedState;
+    if (currentState is CharactersLoaded) {
+      loadedState = currentState;
+    }
+    final isScrollInfinite = event.page == null && loadedState != null;
+    // Variable final para usar en los catch blocks
+    final previousLoadedState = isScrollInfinite ? loadedState : null;
 
     List<Character> oldCharacters = [];
     int nextPage;
@@ -31,30 +38,31 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     // Si page tiene otro valor, usar ese valor específico
     if (event.page == null) {
       // Scroll infinito: continuar desde donde estábamos
-      if (currentState is CharactersLoaded) {
-        if (currentState.hasReachedMax) return;
-        oldCharacters = currentState.characters;
+      if (loadedState != null) {
+        if (loadedState.hasReachedMax || loadedState.isLoadingMore) return;
+        oldCharacters = loadedState.characters;
         // Calcular la siguiente página basándonos en cuántos personajes tenemos
         // La API de Rick and Morty devuelve 20 personajes por página
         nextPage = (oldCharacters.length ~/ 20) + 1;
+        // Emitir estado manteniendo la lista actual y activando isLoadingMore
+        emit(loadedState.copyWith(isLoadingMore: true));
       } else {
         // Primera carga si no hay estado
         oldCharacters = [];
         nextPage = 1;
+        emit(CharactersLoading());
       }
     } else if (event.page == 1) {
       // Refresh: resetear la lista
       oldCharacters = [];
       nextPage = 1;
+      emit(CharactersLoading());
     } else {
       // Página específica
-      oldCharacters = currentState is CharactersLoaded
-          ? currentState.characters
-          : [];
+      oldCharacters = loadedState?.characters ?? [];
       nextPage = event.page!;
+      emit(CharactersLoading());
     }
-
-    emit(CharactersLoading());
 
     try {
       final result = await getCharacters(page: nextPage, name: event.name);
@@ -63,20 +71,48 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
         CharactersLoaded(
           characters: oldCharacters + result.characters,
           hasReachedMax: result.hasReachedMax,
+          isLoadingMore: false,
         ),
       );
     } on ServerFailure catch (failure) {
-      emit(CharactersError(_getErrorMessage(failure)));
+      // Si es scroll infinito, restaurar el estado anterior (desactivar isLoadingMore)
+      if (previousLoadedState != null) {
+        emit(previousLoadedState.copyWith(isLoadingMore: false));
+      } else {
+        emit(CharactersError(_getErrorMessage(failure)));
+      }
     } on NetworkFailure catch (failure) {
-      emit(CharactersError(_getErrorMessage(failure)));
+      if (previousLoadedState != null) {
+        emit(previousLoadedState.copyWith(isLoadingMore: false));
+      } else {
+        emit(CharactersError(_getErrorMessage(failure)));
+      }
     } on CacheFailure catch (failure) {
-      emit(CharactersError(_getErrorMessage(failure)));
+      if (previousLoadedState != null) {
+        emit(previousLoadedState.copyWith(isLoadingMore: false));
+      } else {
+        emit(CharactersError(_getErrorMessage(failure)));
+      }
     } on ValidationFailure catch (failure) {
-      emit(CharactersError(_getErrorMessage(failure)));
+      if (previousLoadedState != null) {
+        emit(previousLoadedState.copyWith(isLoadingMore: false));
+      } else {
+        emit(CharactersError(_getErrorMessage(failure)));
+      }
     } on Failure catch (failure) {
-      emit(CharactersError(_getErrorMessage(failure)));
+      if (previousLoadedState != null) {
+        emit(previousLoadedState.copyWith(isLoadingMore: false));
+      } else {
+        emit(CharactersError(_getErrorMessage(failure)));
+      }
     } catch (e) {
-      emit(CharactersError('Se produjo un error inesperado: ${e.toString()}'));
+      if (previousLoadedState != null) {
+        emit(previousLoadedState.copyWith(isLoadingMore: false));
+      } else {
+        emit(
+          CharactersError('Se produjo un error inesperado: ${e.toString()}'),
+        );
+      }
     }
   }
 

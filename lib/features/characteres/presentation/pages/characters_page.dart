@@ -81,10 +81,6 @@ class _CharactersViewState extends State<_CharactersView> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state is CharactersLoading && state is! CharactersLoaded) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
           if (state is CharactersError) {
             return Center(
               child: Column(
@@ -145,10 +141,10 @@ class _CharactersViewState extends State<_CharactersView> {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 itemCount: state.hasReachedMax
                     ? state.characters.length
-                    : state.characters.length + 1,
+                    : state.characters.length + (state.isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
-                  // Mostrar indicador de carga al final si hay más elementos
-                  if (index >= state.characters.length) {
+                  // Mostrar indicador de carga al final solo si isLoadingMore es true
+                  if (index >= state.characters.length && state.isLoadingMore) {
                     return const Padding(
                       padding: EdgeInsets.all(16.0),
                       child: Center(child: CircularProgressIndicator()),
@@ -166,6 +162,11 @@ class _CharactersViewState extends State<_CharactersView> {
                 },
               ),
             );
+          }
+
+          // Si es CharactersLoading pero no CharactersLoaded, mostrar loading
+          if (state is CharactersLoading) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           return const SizedBox.shrink();
