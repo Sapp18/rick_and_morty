@@ -52,6 +52,11 @@ class _CharactersViewState extends State<_CharactersView> {
   }
 
   void _onScroll() {
+    // Quitar el focus del campo de búsqueda cuando se hace scroll
+    if (_searchFocusNode.hasFocus) {
+      _searchFocusNode.unfocus();
+    }
+
     if (_isBottom) {
       final state = context.read<CharactersBloc>().state;
       // Solo cargar más si no estamos cargando y no hemos alcanzado el máximo
@@ -65,6 +70,8 @@ class _CharactersViewState extends State<_CharactersView> {
   void _onSearchChanged(String query) {
     // Usar un debounce para evitar búsquedas excesivas
     Future.delayed(const Duration(milliseconds: 500), () {
+      // Verificar que el widget esté montado antes de usar context
+      if (!mounted) return;
       if (_searchController.text == query) {
         context.read<CharactersBloc>().add(SearchCharactersEvent(query));
       }

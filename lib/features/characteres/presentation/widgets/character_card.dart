@@ -6,19 +6,38 @@ import 'package:rick_and_morty/features/detail_characters/presentation/pages/det
 
 class CharacterCard extends StatelessWidget {
   final Character character;
-  final VoidCallback? onTap;
 
-  const CharacterCard({super.key, required this.character, this.onTap});
+  const CharacterCard({super.key, required this.character});
+
+  Color _getStatusColor() {
+    // Colores basados en el estado para el punto indicador del avatar
+    switch (character.status.toLowerCase()) {
+      case 'alive':
+        return Colors.green;
+      case 'dead':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
 
   Color _getSpeciesColor() {
     // Colores basados en especie para el punto indicador
     switch (character.species.toLowerCase()) {
       case 'human':
-        return Colors.green;
+        return Colors.blue;
       case 'alien':
-        return Colors.grey;
-      default:
+        return Colors.purple;
+      case 'humanoid':
         return Colors.orange;
+      case 'robot':
+        return Colors.brown;
+      case 'animal':
+        return Colors.yellowAccent;
+      case 'plant':
+        return Colors.green;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -28,23 +47,21 @@ class CharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double avatarSize = 80.0;
     return InkWell(
-      onTap:
-          onTap ??
-          () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    DetailCharactersPage(character: character),
-              ),
-            );
-            // Refrescar favoritos cuando se regrese de la pantalla de detalle
-            if (context.mounted) {
-              final bloc = context.read<CharactersBloc>();
-              bloc.add(const RefreshFavoritesEvent());
-            }
-          },
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailCharactersPage(character: character),
+          ),
+        );
+        // Refrescar favoritos cuando se regrese de la pantalla de detalle
+        if (context.mounted) {
+          final bloc = context.read<CharactersBloc>();
+          bloc.add(const RefreshFavoritesEvent());
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
@@ -58,17 +75,17 @@ class CharacterCard extends StatelessWidget {
                   child: ClipOval(
                     child: Image.network(
                       character.image,
-                      width: 56,
-                      height: 56,
+                      width: avatarSize,
+                      height: avatarSize,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          width: 56,
-                          height: 56,
+                          width: avatarSize,
+                          height: avatarSize,
                           color: Colors.grey[700],
-                          child: const Icon(
+                          child: Icon(
                             Icons.person,
-                            size: 28,
+                            size: avatarSize / 2,
                             color: Colors.white,
                           ),
                         );
@@ -76,8 +93,8 @@ class CharacterCard extends StatelessWidget {
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Container(
-                          width: 56,
-                          height: 56,
+                          width: avatarSize,
+                          height: avatarSize,
                           color: Colors.grey[800],
                           child: const Center(
                             child: CircularProgressIndicator(
@@ -92,13 +109,13 @@ class CharacterCard extends StatelessWidget {
                 ),
                 // Punto de estado/especie en la esquina inferior derecha
                 Positioned(
-                  bottom: -2,
-                  right: -2,
+                  bottom: 0,
+                  right: 0,
                   child: Container(
-                    width: 16,
-                    height: 16,
+                    width: 20,
+                    height: 20,
                     decoration: BoxDecoration(
-                      color: _getSpeciesColor(),
+                      color: _getStatusColor(),
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: Theme.of(context).scaffoldBackgroundColor,
@@ -116,16 +133,23 @@ class CharacterCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Nombre
-                  Text(
-                    character.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  // Nombre con icono de favorito
+                  Row(
+                    children: [
+                      Text(
+                        character.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (character.isFavorite) ...[
+                        SizedBox(width: 10),
+                        const Icon(Icons.favorite, color: Colors.red, size: 16),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   // Especie con punto de color
