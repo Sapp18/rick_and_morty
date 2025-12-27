@@ -102,13 +102,16 @@ class DetailCharactersPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Imagen del personaje
-          Container(
-            width: double.infinity,
-            height: 300,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(detailCharacter.image),
-                fit: BoxFit.cover,
+          Hero(
+            tag: 'character_image_${character.id}',
+            child: Container(
+              width: double.infinity,
+              height: 300,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(detailCharacter.image),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -185,13 +188,16 @@ class DetailCharactersPage extends StatelessWidget {
   Widget _buildBasicInfo() {
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          height: 300,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: NetworkImage(character.image),
-              fit: BoxFit.cover,
+        Hero(
+          tag: 'character_image_${character.id}',
+          child: Container(
+            width: double.infinity,
+            height: 300,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage(character.image),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         ),
