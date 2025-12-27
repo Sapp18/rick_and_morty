@@ -2,6 +2,7 @@ import 'package:rick_and_morty/core/error/exceptions.dart';
 import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/characteres/data/models/all_characters_model.dart';
 import 'package:rick_and_morty/features/characteres/data/models/character_model.dart';
+import 'package:rick_and_morty/features/characteres/domain/entities/character_filters.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/characters_result.dart';
 import 'package:rick_and_morty/features/characteres/domain/repositories/characters_repository.dart';
 import 'package:rick_and_morty/features/characteres/data/datasources/characters_remote_datasource.dart';
@@ -14,10 +15,17 @@ class CharactersRepositoryImpl implements CharactersRepository {
   @override
   Future<CharactersResult> getCharacters({
     required int page,
-    String? name,
+    CharacterFilters? filters,
   }) async {
     try {
-      final response = await remote.getCharacters(page: page, name: name);
+      final response = await remote.getCharacters(
+        page: page,
+        name: filters?.name,
+        status: filters?.status,
+        species: filters?.species,
+        type: filters?.type,
+        gender: filters?.gender,
+      );
 
       // Validar que la respuesta tenga datos
       if (response.results == null || response.results!.isEmpty) {

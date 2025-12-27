@@ -1,4 +1,5 @@
 import 'package:rick_and_morty/core/error/failures.dart';
+import 'package:rick_and_morty/features/characteres/domain/entities/character_filters.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/characters_result.dart';
 import 'package:rick_and_morty/features/characteres/domain/repositories/characters_repository.dart';
 
@@ -13,10 +14,10 @@ class GetCharactersUseCase {
   /// 
   /// Parámetros:
   /// - [page]: Número de página (debe ser >= 1)
-  /// - [name]: Nombre opcional para filtrar personajes
+  /// - [filters]: Filtros opcionales para buscar personajes
   Future<CharactersResult> call({
     required int page,
-    String? name,
+    CharacterFilters? filters,
   }) {
     // Validación de entrada
     if (page < 1) {
@@ -26,7 +27,7 @@ class GetCharactersUseCase {
       );
     }
 
-    if (name != null && name.trim().isEmpty) {
+    if (filters?.name != null && filters!.name!.trim().isEmpty) {
       throw const ValidationFailure(
         'Name cannot be empty if provided',
         code: 'INVALID_NAME',
@@ -35,7 +36,7 @@ class GetCharactersUseCase {
 
     return repository.getCharacters(
       page: page,
-      name: name?.trim(),
+      filters: filters,
     );
   }
 }

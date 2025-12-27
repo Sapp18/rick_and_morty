@@ -32,6 +32,8 @@ class _CharactersView extends StatefulWidget {
 
 class _CharactersViewState extends State<_CharactersView> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -42,6 +44,8 @@ class _CharactersViewState extends State<_CharactersView> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -54,6 +58,20 @@ class _CharactersViewState extends State<_CharactersView> {
         context.read<CharactersBloc>().add(const LoadCharactersEvent());
       }
     }
+  }
+
+  void _onSearchChanged(String query) {
+    // Usar un debounce para evitar búsquedas excesivas
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (_searchController.text == query) {
+        context.read<CharactersBloc>().add(SearchCharactersEvent(query));
+      }
+    });
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    context.read<CharactersBloc>().add(const SearchCharactersEvent(''));
   }
 
   bool get _isBottom {
@@ -74,7 +92,49 @@ class _CharactersViewState extends State<_CharactersView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Personajes'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Personajes'),
+        centerTitle: true,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: _searchController,
+              builder: (context, value, child) {
+                return TextField(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Buscar personaje...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: value.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: _clearSearch,
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: Theme.of(context).cardColor,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                  ),
+                  onChanged: _onSearchChanged,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (query) {
+                    context.read<CharactersBloc>().add(SearchCharactersEvent(query));
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       body: BlocBuilder<CharactersBloc, CharactersState>(
         builder: (context, state) {
           if (state is CharactersInitial) {

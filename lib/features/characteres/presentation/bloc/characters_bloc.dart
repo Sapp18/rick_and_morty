@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
+import 'package:rick_and_morty/features/characteres/domain/entities/character_filters.dart';
 import 'package:rick_and_morty/features/characteres/domain/usecases/get_characters_usecase.dart';
 
 part 'characters_event.dart';
@@ -9,9 +10,11 @@ part 'characters_state.dart';
 
 class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
   final GetCharactersUseCase getCharacters;
+  CharacterFilters? _currentFilters;
 
   CharactersBloc(this.getCharacters) : super(CharactersInitial()) {
     on<LoadCharactersEvent>(_onLoadCharacters);
+    on<SearchCharactersEvent>(_onSearchCharacters);
   }
 
   Future<void> _onLoadCharacters(
@@ -32,6 +35,11 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
 
     List<Character> oldCharacters = [];
     int nextPage;
+
+    // Si hay filtros en el evento, actualizar los filtros actuales
+    if (event.filters != null) {
+      _currentFilters = event.filters;
+    }
 
     // Si page es null, significa "siguiente página" (scroll infinito)
     // Si page es 1, significa "resetear desde el inicio" (refresh)
@@ -65,7 +73,10 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     }
 
     try {
-      final result = await getCharacters(page: nextPage, name: event.name);
+      final result = await getCharacters(
+        page: nextPage,
+        filters: _currentFilters,
+      );
 
       emit(
         CharactersLoaded(
@@ -147,5 +158,23 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
     }
 
     return failure.message;
+  }
+
+  Future<void> _onSearchCharacters(
+    SearchCharactersEvent event,
+    Emitter<CharactersState> emit,
+  ) async {
+    // Si la búsqueda está vacía, limpiar filtros y recargar
+    if (event.query.trim().isEmpty) {
+      _currentFilters = null;
+      add(const LoadCharactersEvent(page: 1));
+      return;
+    }
+
+    // Crear filtros con el nombre de búsqueda
+    _currentFilters = CharacterFilters(name: event.query.trim());
+
+    // Cargar desde la primera página con los nuevos filtros
+    add(LoadCharactersEvent(page: 1, filters: _currentFilters));
   }
 }

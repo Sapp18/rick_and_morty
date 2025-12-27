@@ -3,7 +3,14 @@ import 'package:rick_and_morty/core/error/exceptions.dart';
 import 'package:rick_and_morty/features/characteres/data/models/all_characters_model.dart';
 
 abstract class CharactersRemoteDataSource {
-  Future<AllCharactersModel> getCharacters({required int page, String? name});
+  Future<AllCharactersModel> getCharacters({
+    required int page,
+    String? name,
+    String? status,
+    String? species,
+    String? type,
+    String? gender,
+  });
 }
 
 class CharactersRemoteDataSourceImpl implements CharactersRemoteDataSource {
@@ -15,6 +22,10 @@ class CharactersRemoteDataSourceImpl implements CharactersRemoteDataSource {
   Future<AllCharactersModel> getCharacters({
     required int page,
     String? name,
+    String? status,
+    String? species,
+    String? type,
+    String? gender,
   }) async {
     try {
       // Validar parámetros de entrada
@@ -32,12 +43,30 @@ class CharactersRemoteDataSourceImpl implements CharactersRemoteDataSource {
         );
       }
 
+      // Construir query parameters
+      final queryParameters = <String, dynamic>{
+        'page': page,
+      };
+
+      if (name != null && name.trim().isNotEmpty) {
+        queryParameters['name'] = name.trim();
+      }
+      if (status != null && status.trim().isNotEmpty) {
+        queryParameters['status'] = status.trim();
+      }
+      if (species != null && species.trim().isNotEmpty) {
+        queryParameters['species'] = species.trim();
+      }
+      if (type != null && type.trim().isNotEmpty) {
+        queryParameters['type'] = type.trim();
+      }
+      if (gender != null && gender.trim().isNotEmpty) {
+        queryParameters['gender'] = gender.trim();
+      }
+
       final response = await dio.get(
         '/character',
-        queryParameters: {
-          'page': page,
-          if (name != null && name.isNotEmpty) 'name': name.trim(),
-        },
+        queryParameters: queryParameters,
       );
 
       // Validar respuesta
