@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rick_and_morty/app/app_module.dart';
+import 'package:rick_and_morty/core/utils/character_helper.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
 import 'package:rick_and_morty/features/detail_characters/domain/entities/detail_character.dart';
 import 'package:rick_and_morty/features/detail_characters/presentation/bloc/detail_characters_bloc.dart';
@@ -13,12 +14,11 @@ class DetailCharactersPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          DetailCharactersBloc(
-            getDetailCharactersUseCase,
-            toggleFavoriteUseCase,
-            getFavoritesIdsUseCase,
-          )..add(LoadDetailCharacterEvent(character.id)),
+      create: (context) => DetailCharactersBloc(
+        getDetailCharactersUseCase,
+        toggleFavoriteUseCase,
+        getFavoritesIdsUseCase,
+      )..add(LoadDetailCharacterEvent(character.id)),
       child: Scaffold(
         appBar: AppBar(
           title: Text(character.name),
@@ -36,8 +36,8 @@ class DetailCharactersPage extends StatelessWidget {
                   ),
                   onPressed: () {
                     context.read<DetailCharactersBloc>().add(
-                          ToggleFavoriteDetailEvent(character.id),
-                        );
+                      ToggleFavoriteDetailEvent(character.id),
+                    );
                     // Notificar al BLoC de la lista para actualizar
                     // Esto se puede hacer con un callback o un evento global
                   },
@@ -49,19 +49,33 @@ class DetailCharactersPage extends StatelessWidget {
         body: BlocBuilder<DetailCharactersBloc, DetailCharactersState>(
           builder: (context, state) {
             if (state is DetailCharactersInitial) {
-              return _buildInitialView();
+              return DetailBasicInfo(character: character);
             }
 
             if (state is DetailCharactersLoading) {
-              return _buildLoadingView();
+              // Widget para el estado de carga
+              return Column(
+                children: [
+                  DetailBasicInfo(character: character),
+                  const Expanded(
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+                ],
+              );
             }
 
             if (state is DetailCharactersError) {
-              return _buildErrorView(context, state.message);
+              return DetailErrorView(
+                character: character,
+                message: state.message,
+              );
             }
 
             if (state is DetailCharactersLoaded) {
-              return _buildLoadedView(context, state.character);
+              return DetailLoadedView(
+                character: character,
+                detailCharacter: state.character,
+              );
             }
 
             return const SizedBox.shrink();
@@ -70,24 +84,24 @@ class DetailCharactersPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildInitialView() {
-    return _buildBasicInfo();
-  }
+// Widget para el estado de error
+class DetailErrorView extends StatelessWidget {
+  final Character character;
+  final String message;
 
-  Widget _buildLoadingView() {
+  const DetailErrorView({
+    super.key,
+    required this.character,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildBasicInfo(),
-        const Expanded(child: Center(child: CircularProgressIndicator())),
-      ],
-    );
-  }
-
-  Widget _buildErrorView(BuildContext context, String message) {
-    return Column(
-      children: [
-        _buildBasicInfo(),
+        DetailBasicInfo(character: character),
         Expanded(
           child: Center(
             child: Column(
@@ -120,76 +134,40 @@ class DetailCharactersPage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildLoadedView(
-    BuildContext context,
-    DetailCharacter detailCharacter,
-  ) {
+// Widget para el estado cargado
+class DetailLoadedView extends StatelessWidget {
+  final Character character;
+  final DetailCharacter detailCharacter;
+
+  const DetailLoadedView({
+    super.key,
+    required this.character,
+    required this.detailCharacter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Imagen del personaje
-          Hero(
-            tag: 'character_image_${character.id}',
-            child: Container(
-              width: double.infinity,
-              height: 300,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(detailCharacter.image),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-          ),
+          DetailBasicInfo(character: character),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Nombre
-                Text(
-                  detailCharacter.name,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Status y Species
-                Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(detailCharacter.status),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _getStatusLabel(detailCharacter.status),
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      detailCharacter.species,
-                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
                 // Origen
-                _buildInfoSection(
+                DetailInfoSection(
                   icon: Icons.public,
                   title: 'Origen',
                   value: detailCharacter.origin,
                 ),
                 const SizedBox(height: 16),
                 // Última ubicación conocida
-                _buildInfoSection(
+                DetailInfoSection(
                   icon: Icons.location_on,
                   title: 'Última ubicación conocida',
                   value: detailCharacter.location,
@@ -204,7 +182,7 @@ class DetailCharactersPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildEpisodesList(detailCharacter.episodes),
+                DetailEpisodesList(episodes: detailCharacter.episodes),
               ],
             ),
           ),
@@ -212,10 +190,19 @@ class DetailCharactersPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildBasicInfo() {
+// Widget para información básica del personaje, esta informacion ya viene sobrecargada desde la pagina de personajes
+class DetailBasicInfo extends StatelessWidget {
+  final Character character;
+
+  const DetailBasicInfo({super.key, required this.character});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
+        // Imagen del personaje
         Hero(
           tag: 'character_image_${character.id}',
           child: Container(
@@ -224,7 +211,7 @@ class DetailCharactersPage extends StatelessWidget {
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(character.image),
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
               ),
             ),
           ),
@@ -244,23 +231,14 @@ class DetailCharactersPage extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(character.status),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _getStatusLabel(character.status),
-                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  CircleBasicInfo(
+                    color: CharacterHelper.getStatusColor(character.status),
+                    label: CharacterHelper.getStatusLabel(character.status),
                   ),
                   const SizedBox(width: 16),
-                  Text(
-                    character.species,
-                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                  CircleBasicInfo(
+                    color: CharacterHelper.getSpeciesColor(character.species),
+                    label: CharacterHelper.getSpeciesLabel(character.species),
                   ),
                 ],
               ),
@@ -270,12 +248,44 @@ class DetailCharactersPage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildInfoSection({
-    required IconData icon,
-    required String title,
-    required String value,
-  }) {
+class CircleBasicInfo extends StatelessWidget {
+  final Color color;
+  final String label;
+  const CircleBasicInfo({super.key, required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Text(label, style: TextStyle(fontSize: 16, color: Colors.grey[700])),
+      ],
+    );
+  }
+}
+
+// Widget para sección de información
+class DetailInfoSection extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+
+  const DetailInfoSection({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -304,8 +314,16 @@ class DetailCharactersPage extends StatelessWidget {
       ],
     );
   }
+}
 
-  Widget _buildEpisodesList(List<String> episodes) {
+// Widget para lista de episodios
+class DetailEpisodesList extends StatelessWidget {
+  final List<String> episodes;
+
+  const DetailEpisodesList({super.key, required this.episodes});
+
+  @override
+  Widget build(BuildContext context) {
     if (episodes.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(left: 28),
@@ -322,7 +340,7 @@ class DetailCharactersPage extends StatelessWidget {
       itemCount: episodes.length,
       itemBuilder: (context, index) {
         final episodeUrl = episodes[index];
-        final episodeNumber = _extractEpisodeNumber(episodeUrl);
+        final episodeNumber = CharacterHelper.extractEpisodeNumber(episodeUrl);
         return Padding(
           padding: const EdgeInsets.only(left: 28, bottom: 8),
           child: Row(
@@ -342,34 +360,5 @@ class DetailCharactersPage extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _extractEpisodeNumber(String episodeUrl) {
-    // Extraer el número del episodio de la URL
-    // Ejemplo: "https://rickandmortyapi.com/api/episode/1" -> "1"
-    final parts = episodeUrl.split('/');
-    return parts.last;
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'alive':
-        return Colors.green;
-      case 'dead':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status.toLowerCase()) {
-      case 'alive':
-        return 'Vivo';
-      case 'dead':
-        return 'Muerto';
-      default:
-        return 'Desconocido';
-    }
   }
 }

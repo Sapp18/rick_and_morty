@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rick_and_morty/core/utils/character_helper.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
 import 'package:rick_and_morty/features/characteres/presentation/bloc/characters_bloc.dart';
 import 'package:rick_and_morty/features/detail_characters/presentation/pages/detail_characters_page.dart';
@@ -8,42 +9,6 @@ class CharacterCard extends StatelessWidget {
   final Character character;
 
   const CharacterCard({super.key, required this.character});
-
-  Color _getStatusColor() {
-    // Colores basados en el estado para el punto indicador del avatar
-    switch (character.status.toLowerCase()) {
-      case 'alive':
-        return Colors.green;
-      case 'dead':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  Color _getSpeciesColor() {
-    // Colores basados en especie para el punto indicador
-    switch (character.species.toLowerCase()) {
-      case 'human':
-        return Colors.blue;
-      case 'alien':
-        return Colors.purple;
-      case 'humanoid':
-        return Colors.orange;
-      case 'robot':
-        return Colors.brown;
-      case 'animal':
-        return Colors.yellowAccent;
-      case 'plant':
-        return Colors.green;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getSpeciesLabel() {
-    return character.species;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +66,7 @@ class CharacterCard extends StatelessWidget {
                 width: 16,
                 height: 16,
                 decoration: BoxDecoration(
-                  color: _getStatusColor(),
+                  color: CharacterHelper.getStatusColor(character.status),
                   shape: BoxShape.circle,
                   border: Border.all(
                     color: Theme.of(context).scaffoldBackgroundColor,
@@ -131,22 +96,9 @@ class CharacterCard extends StatelessWidget {
       ),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Row(
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                color: _getSpeciesColor(),
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              _getSpeciesLabel(),
-              style: TextStyle(fontSize: 14, color: Colors.grey[400]),
-            ),
-          ],
+        child: CircleBasicInfo(
+          color: CharacterHelper.getSpeciesColor(character.species),
+          label: CharacterHelper.getSpeciesLabel(character.species),
         ),
       ),
       trailing: Icon(Icons.chevron_right, color: Colors.grey[600], size: 24),
