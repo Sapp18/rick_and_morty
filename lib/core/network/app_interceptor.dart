@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 
 class AppInterceptor extends Interceptor {
   @override
@@ -12,7 +13,7 @@ class AppInterceptor extends Interceptor {
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     // Logging simple
-    print(
+    debugPrint(
       'RESPONSE [${response.statusCode}] => ${response.requestOptions.path}',
     );
     super.onResponse(response, handler);
@@ -20,7 +21,7 @@ class AppInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    print('ERROR [${err.response?.statusCode}] => ${err.message}');
+    debugPrint('ERROR [${err.response?.statusCode}] => ${err.message}');
     super.onError(err, handler);
   }
 }

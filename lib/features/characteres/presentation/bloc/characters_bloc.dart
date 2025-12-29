@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character.dart';
 import 'package:rick_and_morty/features/characteres/domain/entities/character_filters.dart';
@@ -216,12 +217,10 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
         return character;
       }).toList();
 
-      emit(
-        currentState.copyWith(characters: updatedCharacters),
-      );
+      emit(currentState.copyWith(characters: updatedCharacters));
     } catch (e) {
       // Si hay error, no hacer nada o mostrar un mensaje
-      print('Error al actualizar favorito: $e');
+      debugPrint('Error al actualizar favorito: $e');
     }
   }
 
@@ -250,12 +249,10 @@ class CharactersBloc extends Bloc<CharactersEvent, CharactersState> {
         );
       }).toList();
 
-      emit(
-        currentState.copyWith(characters: updatedCharacters),
-      );
+      emit(currentState.copyWith(characters: updatedCharacters));
     } catch (e) {
       // Si hay error, no hacer nada
-      print('Error al refrescar favoritos: $e');
+      debugPrint('Error al refrescar favoritos: $e');
     }
   }
 }

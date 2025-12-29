@@ -49,7 +49,7 @@ class AppTheme {
     );
   }
 
-  // Tema claro (por si en el futuro quieres agregarlo)
+  // Tema claro
   static ThemeData get lightTheme {
     return ThemeData(
       colorScheme: ColorScheme.fromSeed(

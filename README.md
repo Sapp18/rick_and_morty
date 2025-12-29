@@ -118,7 +118,6 @@ API / Local Storage
 lib/
 ├── app/
 │   ├── app_module.dart          # Inyección de dependencias
-│   ├── routes.dart               # Configuración de rutas
 │   └── theme/
 │       └── app_theme.dart        # Configuración del tema oscuro
 ├── core/
@@ -131,10 +130,8 @@ lib/
 │   │   └── failures.dart         # Failures para manejo de errores
 │   ├── network/
 │   │   ├── dio_client.dart       # Cliente HTTP configurado
-│   │   ├── app_interceptor.dart  # Interceptores HTTP
-│   │   └── endpoints.dart        # Endpoints de la API
+│   │   └── app_interceptor.dart  # Interceptores HTTP
 │   └── utils/
-│       ├── character_helper.dart  # Utilidades para personajes
 │       └── constans.dart         # Constantes de la app
 └── features/
     ├── characteres/              # Feature de listado de personajes

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/detail_characters/domain/entities/detail_character.dart';
 import 'package:rick_and_morty/features/detail_characters/domain/usecases/get_detail_characters_usecase.dart';
@@ -116,7 +117,7 @@ class DetailCharactersBloc
       emit(currentState.copyWith(isFavorite: _isFavorite));
     } catch (e) {
       // Si hay error, no hacer nada o mostrar un mensaje
-      print('Error al actualizar favorito: $e');
+      debugPrint('Error al actualizar favorito: $e');
     }
   }
 }

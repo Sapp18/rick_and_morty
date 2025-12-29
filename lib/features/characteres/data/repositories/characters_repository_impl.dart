@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:rick_and_morty/core/error/exceptions.dart';
 import 'package:rick_and_morty/core/error/failures.dart';
 import 'package:rick_and_morty/features/characteres/data/models/all_characters_model.dart';
@@ -50,15 +51,9 @@ class CharactersRepositoryImpl implements CharactersRepository {
               // CharacterModel.fromJson manejará las validaciones adicionales
               final jsonMap = {
                 'id': apiResult.id,
-                'name':
-                    apiResult.name ??
-                    '', // CharacterModel validará si está vacío
-                'image':
-                    apiResult.image ??
-                    '', // CharacterModel validará si está vacío
-                'species':
-                    apiResult.species ??
-                    '', // CharacterModel validará si está vacío
+                'name': apiResult.name ?? '',
+                'image': apiResult.image ?? '',
+                'species': apiResult.species ?? '',
                 'status': apiResult.status?.name ?? 'unknown',
                 'origin': apiResult.origin?.toJson() ?? {'name': 'unknown'},
               };
@@ -67,13 +62,12 @@ class CharactersRepositoryImpl implements CharactersRepository {
               return CharacterModel.fromJson(jsonMap);
             } on ValidationException catch (e) {
               // Log del error pero continuar con otros personajes
-              // En producción, podrías querer usar un logger apropiado
-              print(
+              debugPrint(
                 'Error parsing character (id: ${apiResult.id}): ${e.message}',
               );
               return null;
             } catch (e) {
-              print(
+              debugPrint(
                 'Unexpected error parsing character (id: ${apiResult.id}): $e',
               );
               return null;
@@ -89,15 +83,16 @@ class CharactersRepositoryImpl implements CharactersRepository {
           favoritesIds = (await favoritesRepository!.getFavoritesIds()).toSet();
         } catch (e) {
           // Si hay error obteniendo favoritos, continuar sin ellos
-          print('Error obteniendo favoritos: $e');
+          debugPrint('Error obteniendo favoritos: $e');
         }
       }
 
       // Mapear a entidades con información de favoritos
       final charactersWithFavorites = characters
-          .map((model) => model.toEntity(
-                isFavorite: favoritesIds.contains(model.id),
-              ))
+          .map(
+            (model) =>
+                model.toEntity(isFavorite: favoritesIds.contains(model.id)),
+          )
           .toList();
 
       // Validar que al menos algunos personajes se parsearon correctamente

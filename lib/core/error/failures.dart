@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'exceptions.dart';
 
 /// Clases de fallos (failures) que representan errores en el dominio
-/// Siguiendo el patrón de Either/Result para manejo funcional de errores
 
 abstract class Failure extends Equatable {
   final String message;

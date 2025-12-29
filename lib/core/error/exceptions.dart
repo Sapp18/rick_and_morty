@@ -1,7 +1,5 @@
-/// Excepciones base y específicas para el manejo de errores en la aplicación
-/// Siguiendo el principio de responsabilidad única y abierto/cerrado
+// Excepciones base y específicas para el manejo de errores en la aplicación
 
-/// Excepción base para todas las excepciones de la aplicación
 abstract class AppException implements Exception {
   final String message;
   final String? code;
